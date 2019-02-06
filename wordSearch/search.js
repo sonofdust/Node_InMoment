@@ -98,13 +98,13 @@ module.exports = function search(grid, wordlist) {
 
   /* SEARCH CHECK LIST TO FIND MATCHING WORDS */
 
-  //console.log(wordlist);
-  // console.log(grid);
+ //  console.log(wordlist);
+ //  console.log(grid);
   let matchList = [];
   wordlist.forEach(word => {
-    let points = searchWord(word, grid);
+    let points = searchWord(word.toUpperCase(), grid);
     if (points[word.toUpperCase()].length) {
-      matchList.push(word);
+      matchList.push(word.toUpperCase());
     }
   });
 
