@@ -8,80 +8,105 @@
  * Returns: an array of words that can be found in the word search
  ***/
 module.exports = function search(grid, wordlist) {
-  /* FUNCTION TO EXTRACT ALL POSSIBLE WORD STRINGS FROMM GRID */
-  const getCheckSet = matrix => {
-    const set = new Set();
-    /*******************************/
-    /****   LOAD HORIZONTAL     ****/
-    /*******************************/
-    let buff = [];
-    matrix.forEach(row => buff.push([]));
+  //********************************* MATRIX TRAVERSE *********************************
+  const searchWord = (word, matrix) => {
+    let points = {};
+    const wordPoints = () => {
+      if (!points[word]) points[word] = [];
 
-    matrix.forEach(row => {
-      set.add(row.join(""));
-      row.forEach((elem, idx2) => {
-        buff[idx2].push(elem);
-      });
-    });
-    /*******************************/
-    /****     LOAD VERTICAL     ****/
-    /*******************************/
-    buff.forEach(row => set.add(row.join("")));
-    /*******************************/
-    /****     LOAD DIAGONAL     ****/
-    /*******************************/
-    const loadSet = matrix => {
-      let buff = [];
-      matrix.forEach(row => buff.push([]));
-      matrix.forEach((row, idx1) => {
-        row.forEach((elm, idx2) => {
-          if (row[idx2 - idx1]) buff[idx2].push(row[idx2 - idx1]);
-        });
-      });
+      wordCars = word.split("");
 
-      buff.forEach(item => {
-        let x1 = item.join("");
-        let x2 = item.reverse().join("");
-        try {
-          if (!(set.has(x1) || set.has(x2))) {
-            set.add(x1);
+      matrix.forEach((row, y) =>
+        row.forEach((elm, x) => {
+          if (elm === wordCars[0]) {
+            const checkPath = path => {
+              let pointList = [];
+              try {
+                for (let i = 0; i < wordCars.length; i++) {
+                  if (matrix[path(x, y, i).y][path(x, y, i).x] == wordCars[i]) {
+                    point = new Object();
+                    point.x = path(x, y, i).x;
+                    point.y = path(x, y, i).y;
+                    pointList.push(point);
+                  } else {
+                    pointList = [];
+                    break;
+                  }
+                }
+              } catch (e) {
+                pointList = [];
+              }
+              if (pointList.length) {
+                points[word].push(pointList);
+              }
+            };
+            /***** CREATE FUNCTIONS TO NAVIGATE MATRIX*******/
+            const funcArray = [];
+            const west = (x, y, i) => ({
+              x: x - i,
+              y: y
+            });
+            funcArray.push(west);
+            const east = (x, y, i) => ({
+              x: x + i,
+              y: y
+            });
+            funcArray.push(east);
+            const north = (x, y, i) => ({
+              x: x,
+              y: y - i
+            });
+            funcArray.push(north);
+            const south = (x, y, i) => ({
+              x: x,
+              y: y + i
+            });
+            funcArray.push(south);
+            const northwest = (x, y, i) => ({
+              x: x - i,
+              y: y - i
+            });
+            funcArray.push(northwest);
+            const northeast = (x, y, i) => ({
+              x: x + i,
+              y: y - i
+            });
+            funcArray.push(northeast);
+            const southeast = (x, y, i) => ({
+              x: x + i,
+              y: y + i
+            });
+            funcArray.push(southeast);
+            const southweast = (x, y, i) => ({
+              x: x - i,
+              y: y + i
+            });
+            funcArray.push(southweast);
+            funcArray.forEach(item => checkPath(item));
           }
-        } catch (e) {}
-      });
+        })
+      );
     };
-    loadSet(matrix);
-    loadSet(matrix.reverse());
-    matrix = matrix.map(row => row.reverse());
-    loadSet(matrix);
-    loadSet(matrix.reverse());
+    /********************  CASE INSENSITIVE **********************/
+    word = word.toUpperCase();
+    matrix = matrix.map(row => row.map(ele => ele.toUpperCase()));
+    /********************  FIND WORDS IN MATRIX ******************/
 
-    return set;
+    wordPoints(word, matrix);
+    return points;
   };
-  /**********************************/
-  /* MAKE ALL CHARACTERS SAME CASE */
-  /**********************************/
-  wordlist = wordlist.map(item => item.toUpperCase());
-  grid = grid.map(item => item.map(elem => elem.toUpperCase()));
 
   /* SEARCH CHECK LIST TO FIND MATCHING WORDS */
 
-  //    console.log(wordlist);
-  //    console.log(grid);
-  const checkSet = getCheckSet(grid);
-  const matchList = [];
-  const words = new Set(wordlist);
-  for (let word of words) {
-    for (let elm of checkSet) {
-      let elm1 = elm;
-      let elm2 = elm
-        .split("")
-        .reverse()
-        .join("");
-      if (elm1.indexOf(word) !== -1 || elm2.indexOf(word) !== -1) {
-        matchList.push(word);
-        break;
-      }
+  //console.log(wordlist);
+  // console.log(grid);
+  let matchList = [];
+  wordlist.forEach(word => {
+    let points = searchWord(word, grid);
+    if (points[word.toUpperCase()].length) {
+      matchList.push(word);
     }
-  }
+  });
+
   return matchList;
 };
